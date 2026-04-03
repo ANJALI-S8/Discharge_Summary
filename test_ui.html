@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Discharge Summary - Exact PDF Template</title>
+<style>
+    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+    .container { max-width: 1200px; margin: auto; background: white; padding: 30px; border: 1px solid #ccc; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #003087; margin-bottom: 5px; }
+    .subtitle { text-align: center; color: #555; font-style: italic; margin-bottom: 30px; }
+    .controls { text-align: center; margin-bottom: 25px; }
+    select, button { padding: 11px 16px; margin: 5px; font-size: 16px; border-radius: 6px; }
+    button { background: #003087; color: white; border: none; cursor: pointer; }
+    button:hover { background: #002266; }
+    .btn-green { background: #006400; }
+    .btn-green:hover { background: #004d00; }
+
+    .section { margin-bottom: 35px; }
+    .section-title { background: #003087; color: white; padding: 12px 16px; font-weight: bold; font-size: 17px; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    td.label { background: #f0f0f0; font-weight: bold; width: 32%; padding: 10px; border: 1px solid #999; vertical-align: top; }
+    td.value { padding: 10px; border: 1px solid #999; vertical-align: top; white-space: pre-wrap; }
+    input[type="text"], textarea { width: 100%; border: 1px solid #777; padding: 8px; border-radius: 4px; font-size: 15px; }
+    textarea { height: 140px; resize: vertical; }
+    .status { padding: 14px; margin: 15px 0; border-radius: 6px; text-align: center; font-weight: bold; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+<div class="container" id="printArea">
+    <h1>PATIENT DISCHARGE SUMMARY 1</h1>
+    <p class="subtitle">Compliant with CDC, NHS, and NIH Documentation Standards</p>
+
+    <div class="controls">
+        <select id="patientDropdown" style="width: 380px;"><option value="">Select Patient...</option></select>
+        <button onclick="loadPatient()">Load Patient</button>
+        <button onclick="saveData()" class="btn-green">OK (Save to DB)</button>
+        <button onclick="downloadPDF()">Download PDF</button>
+    </div>
+
+    <div id="status"></div>
+
+    <!-- SECTION 1 -->
+    <div class="section">
+        <div class="section-title">SECTION 1: PATIENT IDENTIFICATION & ADMISSION DETAILS</div>
+        <table>
+            <tr><td class="label">Patient Name</td><td class="value"><input id="name" type="text"></td>
+                <td class="label">MRN / Hospital ID</td><td class="value"><input id="mrn" type="text"></td></tr>
+            <tr><td class="label">Age / Gender</td><td class="value"><input id="age_gender" type="text"></td>
+                <td class="label">Admission Date & Time</td><td class="value"><input id="admission_dt" type="text"></td></tr>
+            <tr><td class="label">Discharge Date & Time</td><td class="value"><input id="discharge_dt" type="text"></td>
+                <td class="label">Length of Stay</td><td class="value"><input id="los" type="text"></td></tr>
+            <tr><td class="label">Admitting Physician</td><td class="value"><input id="admitting" type="text"></td>
+                <td class="label">Discharging Physician</td><td class="value"><input id="discharging" type="text"></td></tr>
+        </table>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section">
+        <div class="section-title">SECTION 2: DIAGNOSIS</div>
+        <table>
+            <tr><td class="label">Primary Diagnosis</td><td class="value"><input id="primary_dx" type="text"></td>
+                <td class="label">ICD-10 Code</td><td class="value"><input id="icd10" type="text"></td></tr>
+        </table>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="section">
+        <div class="section-title">SECTION 3: PRESENTING COMPLAINT & HISTORY OF PRESENT ILLNESS</div>
+        <table>
+            <tr><td class="label">Chief Complaint</td><td colspan="3" class="value"><input id="chief_complaint" type="text"></td></tr>
+            <tr><td class="label" colspan="4">History of Present Illness (HPI) - Editable</td></tr>
+            <tr><td colspan="4" class="value"><textarea id="hpi"></textarea></td></tr>
+        </table>
+    </div>
+
+    <!-- SECTION 4 - Exact match to your PDF screenshot -->
+    <div class="section">
+        <div class="section-title">SECTION 4: CLINICAL EXAMINATION ON ADMISSION</div>
+        <table>
+            <tr><td class="label">Vital Signs on Admission</td><td class="value" id="vitals_display"></td></tr>
+            <tr><td class="label">Systemic Examination Findings</td><td class="value" id="systemic_display"></td></tr>
+        </table>
+    </div>
+
+    <!-- SECTION 5 -->
+    <div class="section">
+        <div class="section-title">SECTION 5: INVESTIGATIONS & DIAGNOSTIC RESULTS</div>
+        <div id="labs_display"></div>
+    </div>
+
+    <!-- SECTION 6 -->
+    <div class="section">
+        <div class="section-title">SECTION 6: CLINICAL COURSE & MANAGEMENT DURING HOSPITALIZATION</div>
+        <table>
+            <tr><td class="label" colspan="4">Summary of Hospital Course - Editable</td></tr>
+            <tr><td colspan="4" class="value"><textarea id="course"></textarea></td></tr>
+        </table>
+    </div>
+
+    <!-- SECTION 7 -->
+    <div class="section">
+        <div class="section-title">SECTION 7: MEDICATION RECORD</div>
+        <div id="meds_display"></div>
+    </div>
+
+    <!-- SECTION 8 - Exact match to your PDF -->
+    <div class="section">
+        <div class="section-title">SECTION 8: CONDITION AT DISCHARGE & FUNCTIONAL STATUS</div>
+        <table>
+            <tr><td class="label">Functional & Nutritional Status</td><td class="value" id="functional_display"></td></tr>
+        </table>
+    </div>
+
+    <!-- SECTION 9 -->
+    <div class="section">
+        <div class="section-title">SECTION 9: DISCHARGE INSTRUCTIONS & FOLLOW-UP PLAN</div>
+        <table>
+            <tr><td class="label" colspan="4">Activity & Dietary Restrictions - Editable</td></tr>
+            <tr><td colspan="4" class="value"><textarea id="restrictions"></textarea></td></tr>
+        </table>
+    </div>
+
+    <!-- SECTIONS 10-13 -->
+    <div class="section">
+        <div class="section-title">SECTION 10: INFECTION PREVENTION & CONTROL</div>
+        <div id="section10"></div>
+    </div>
+    <div class="section">
+        <div class="section-title">SECTION 11: QUALITY INDICATORS & PATIENT SAFETY</div>
+        <div id="section11"></div>
+    </div>
+    <div class="section">
+        <div class="section-title">SECTION 12: AUTHORISATION & SIGNATURES</div>
+        <div id="section12"></div>
+    </div>
+    <div class="section">
+        <div class="section-title">SECTION 13: ADMINISTRATIVE & RECORDS MANAGEMENT</div>
+        <div id="section13"></div>
+    </div>
+</div>
+
+<script>
+const BASE_URL = "http://10.10.116.178:5001";
+let currentId = null;
+
+function formatObject(obj) {
+    if (!obj || typeof obj !== "object") return obj || "N/A";
+    return Object.entries(obj).map(([k, v]) => `${k}: ${v}`).join(" | ");
+}
+
+async function loadPatients() {
+    try {
+        const res = await fetch(`${BASE_URL}/api/patients`);
+        const data = await res.json();
+        const sel = document.getElementById("patientDropdown");
+        sel.innerHTML = '<option value="">Select Patient...</option>';
+        data.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.discharge_id;
+            opt.textContent = `${p.name} (ID: ${p.discharge_id})`;
+            sel.appendChild(opt);
+        });
+    } catch(e) { showStatus("Failed to load patients", "red"); }
+}
+
+async function loadPatient() {
+    const id = document.getElementById("patientDropdown").value;
+    if (!id) return showStatus("Please select a patient", "orange");
+
+    showStatus("Loading...", "blue");
+    try {
+        const res = await fetch(`${BASE_URL}/api/discharge/${id}`);
+        const data = await res.json();
+        currentId = id;
+        renderForm(data);
+        showStatus(`✅ Patient ${id} loaded successfully`, "green");
+    } catch(e) {
+        showStatus("Load failed", "red");
+        console.error(e);
+    }
+}
+
+function renderForm(data) {
+    const s = data.sections || {};
+
+    // Section 1-3
+    document.getElementById("name").value = s.section_1?.fields?.patient_name || "N/A";
+    document.getElementById("mrn").value = s.section_1?.fields?.mrn_hospital_id || "N/A";
+    document.getElementById("age_gender").value = `${s.section_1?.fields?.age || "N/A"} / ${s.section_1?.fields?.gender || "N/A"}`;
+    document.getElementById("admission_dt").value = s.section_1?.fields?.admission_date_time || "N/A";
+    document.getElementById("discharge_dt").value = s.section_1?.fields?.discharge_date_time || "N/A";
+    document.getElementById("los").value = (s.section_1?.fields?.length_of_stay || "N/A") + " days";
+    document.getElementById("admitting").value = s.section_1?.fields?.admitting_physician || "N/A";
+    document.getElementById("discharging").value = s.section_1?.fields?.discharging_physician || "N/A";
+
+    document.getElementById("primary_dx").value = s.section_2?.fields?.primary_diagnosis || "N/A";
+    document.getElementById("icd10").value = s.section_2?.fields?.primary_diagnosis_icd10_code || "N/A";
+
+    document.getElementById("chief_complaint").value = s.section_3?.fields?.chief_complaint || "N/A";
+    document.getElementById("hpi").value = s.section_3?.fields?.history_of_present_illness || "N/A";
+
+    // Section 4 - Exact match to your PDF screenshot
+    let vitals = s.section_4?.fields?.vital_signs || "N/A";
+    if (typeof vitals === "object") vitals = Object.entries(vitals).map(([k,v]) => `${k.toUpperCase()}: ${v}`).join(" | ");
+    document.getElementById("vitals_display").innerHTML = vitals;
+
+    let systemic = s.section_4?.fields?.systemic_examination || "N/A";
+    if (typeof systemic === "object") systemic = Object.entries(systemic).map(([k,v]) => `${k}: ${v}`).join(" | ");
+    document.getElementById("systemic_display").innerHTML = systemic;
+
+    // Section 5 Labs
+    let labsHTML = "<strong>Laboratory Investigations:</strong><br><table style='width:100%;border-collapse:collapse;'><tr><th>Test</th><th>Admission</th><th>Discharge</th><th>Interpretation</th></tr>";
+    const labs = s.section_5?.laboratory_investigations || [];
+    if (labs.length) {
+        labs.forEach(l => labsHTML += `<tr><td>${l.test_name||'N/A'}</td><td>${l.admission_value||'N/A'}</td><td>${l.discharge_value||'N/A'}</td><td>${l.interpretation||'N/A'}</td></tr>`);
+    } else labsHTML += "<tr><td colspan='4' style='color:#777'>No data</td></tr>";
+    labsHTML += "</table>";
+    document.getElementById("labs_display").innerHTML = labsHTML;
+
+    // Section 6
+    document.getElementById("course").value = s.section_6?.fields?.summary_of_hospital_course || "N/A";
+
+    // Section 7
+    let medsHTML = "<strong>Medications on Discharge:</strong><br>";
+    const meds = s.section_7?.fields?.medications_on_discharge || [];
+    if (meds.length) {
+        meds.forEach(m => medsHTML += `• ${m.drug_name} ${m.dose||''} ${m.route||''} ${m.frequency||''} - ${m.duration||''}<br>`);
+    } else medsHTML += "N/A";
+    document.getElementById("meds_display").innerHTML = medsHTML;
+
+    // Section 8 - Exact match to your PDF
+    let functional = s.section_8?.fields?.functional_status || "N/A";
+    if (typeof functional === "object") functional = Object.entries(functional).map(([k,v]) => `${k}: ${v}`).join(" | ");
+    document.getElementById("functional_display").innerHTML = functional;
+
+    // Section 9
+    document.getElementById("restrictions").value = s.section_9?.fields?.activity_dietary_restrictions || "N/A";
+
+    // Sections 10-13
+    const inf = s.section_10?.fields || {};
+    document.getElementById("section10").innerHTML = `<table><tr><td class="label">CAUTI</td><td class="value">${inf.cauti?.status || "N/A"}</td></tr><tr><td class="label">CLABSI</td><td class="value">${inf.clabsi?.status || "N/A"}</td></tr><tr><td class="label">VAP</td><td class="value">${inf.vap?.status || "N/A"}</td></tr><tr><td class="label">SSI</td><td class="value">${inf.ssi?.status || "N/A"}</td></tr></table>`;
+
+    const qi = s.section_11?.fields || {};
+    document.getElementById("section11").innerHTML = `<table><tr><td class="label">VTE Prophylaxis</td><td class="value">${qi.vte_prophylaxis?.complied || "N/A"}</td></tr><tr><td class="label">Fall Risk</td><td class="value">${qi.fall_risk_assessment?.complied || "N/A"}</td></tr><tr><td class="label">Pressure Ulcer</td><td class="value">${qi.pressure_ulcer?.complied || "N/A"}</td></tr></table>`;
+
+    const sig = s.section_12?.fields || {};
+    document.getElementById("section12").innerHTML = `<table><tr><td class="label">Discharging Physician</td><td class="value">${sig.doctor_signature || "N/A"}</td></tr><tr><td class="label">Patient/Guardian</td><td class="value">${sig.patient_signature || "N/A"}</td></tr><tr><td class="label">Nursing In-Charge</td><td class="value">${sig.nurse_signature || "N/A"}</td></tr></table>`;
+
+    const admin = s.section_13?.fields || {};
+    document.getElementById("section13").innerHTML = `<table><tr><td class="label">EHR Updated</td><td class="value">${admin.ehr_updated || "N/A"}</td></tr><tr><td class="label">Claim Submitted</td><td class="value">${admin.claim_submitted || "N/A"}</td></tr><tr><td class="label">Copy Given</td><td class="value">${admin.copy_given || "N/A"}</td></tr><tr><td class="label">Advance Directive</td><td class="value">N/A</td></tr></table>`;
+}
+
+async function saveData() {
+    if (!currentId) return showStatus("Load a patient first", "orange");
+    const payload = {
+        hpi: document.getElementById("hpi").value,
+        course: document.getElementById("course").value,
+        restrictions: document.getElementById("restrictions").value
+    };
+    showStatus("Saving to database...", "blue");
+    try {
+        const res = await fetch(`${BASE_URL}/api/save-summary/${currentId}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        });
+        res.ok ? showStatus("✅ Saved successfully!", "green") : showStatus("Save failed", "red");
+    } catch(e) { showStatus("Save error", "red"); }
+}
+
+function downloadPDF() {
+    if (!currentId) return showStatus("Load a patient first", "orange");
+    html2pdf().set({margin: 0.7, filename: `Discharge_Summary_${currentId}.pdf`, html2canvas: {scale: 2}, jsPDF: {unit:'in', format:'a4'}}).from(document.getElementById("printArea")).save();
+    showStatus("PDF downloaded", "green");
+}
+
+function showStatus(msg, color) {
+    const el = document.getElementById("status");
+    const bg = color === "green" ? "#d4edda" : color === "red" ? "#f8d7da" : "#fff3cd";
+    el.innerHTML = `<div class="status" style="background:${bg}; color:${color==='green'?'#155724':color==='red'?'#721c24':'#856404'}">${msg}</div>`;
+}
+
+loadPatients();
+</script>
+</body>
+</html>
