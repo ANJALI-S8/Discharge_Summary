@@ -1,0 +1,22 @@
+# Virtual Environment
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+ENV/
+
+# Large data files
+*.json
+*.csv
+*.db
+discharge_summary_export.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
